@@ -1,4 +1,5 @@
 import re
+import os # работа с файловой системой
 
 def salted_translate(text):
     """Функцию которая осуществляет перевод с русского на "солёный язык" - 
@@ -15,6 +16,36 @@ def accords_extract(file_path):
     
     return accord
 
-def rename_files(dir, pattern, new_pattern, sample_names,to_replace):
+def rename_files(dir, pattern, new_pattern=None, sample_names=None,to_replace=False):
     """Функция осуществляет групповое переименование файлов либо по паттерну, 
     либо по словарю названий образцов, либо последовательно по обоим механизмам. """
+    #https://pythonworld.ru/moduli/modul-os.html
+    for filename in os.listdir(dir):
+        if not re.search(pattern,filename):
+            continue
+        
+        # https://pythonworld.ru/moduli/modul-os-path.html
+        path=os.path.join(dir,filename)
+        new_name = filename
+        if new_pattern != None:
+            new_name=re.sub(pattern, new_pattern, new_name)
+            
+        if sample_names != None:
+            for old, new in sample_names.items():
+                new_name=re.sub(old,new,new_name)
+                
+        new_path=os.path.join(dir,new_name)
+        
+        if os.path.exists(new_path): # не перезаписать существующий файл
+            continue
+        
+        if to_replace:
+            os.rename(path, new_path)
+        else:
+            with open(path, 'r') as old_file:
+                with open(new_path, 'w') as new_file:
+                    for line in old_file:
+                        new_file.write(line)
+                        
+            
+        
